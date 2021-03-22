@@ -53,11 +53,19 @@ func executeCheck(event *types.Event) (int, error) {
 	}
 
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(res.Body)
-	result := buf.String()
+	if _, err := buf.ReadFrom(res.Body)
+	err != nil {
+	    fmt.Printf("Critical: %v\n", err)
+	    return sensu.CheckStateCritical, nil
+	}
+        result := buf.String()
 
         var final map[string]interface{}
-	json.Unmarshal([]byte(result), &final)
+	err = json.Unmarshal([]byte(result), &final)
+	if err != nil {
+	    fmt.Printf("Critical: %v\n", err)
+	    return sensu.CheckStateCritical, nil
+	}
  
 	if final["status"] == "green" {
 	   fmt.Printf("%s OK: cluster status is Green.\n", plugin.PluginConfig.Name)
