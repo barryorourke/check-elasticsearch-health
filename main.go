@@ -41,21 +41,21 @@ func executeCheck(event *types.Event) (int, error) {
 
 	es, err := elasticsearch.NewDefaultClient()
 	if err != nil {
-	    fmt.Printf("Critical: %v\n", err)
+	    fmt.Printf("CRITICAL: %v\n", err)
 	    return sensu.CheckStateCritical, nil
 	}	
 
 	req := esapi.ClusterHealthRequest{}
 	res, err := req.Do(context.Background(), es)
 	if err != nil {
-	    fmt.Printf("Critical: %v\n", err)
+	    fmt.Printf("CRITICAL: %v\n", err)
 	    return sensu.CheckStateCritical, nil
 	}
 
 	buf := new(bytes.Buffer)
 	if _, err := buf.ReadFrom(res.Body)
 	err != nil {
-	    fmt.Printf("Critical: %v\n", err)
+	    fmt.Printf("CRITICAL: %v\n", err)
 	    return sensu.CheckStateCritical, nil
 	}
         result := buf.String()
@@ -63,7 +63,7 @@ func executeCheck(event *types.Event) (int, error) {
         var final map[string]interface{}
 	err = json.Unmarshal([]byte(result), &final)
 	if err != nil {
-	    fmt.Printf("Critical: %v\n", err)
+	    fmt.Printf("CRITICAL: %v\n", err)
 	    return sensu.CheckStateCritical, nil
 	}
  
@@ -71,10 +71,10 @@ func executeCheck(event *types.Event) (int, error) {
 	   fmt.Printf("%s OK: cluster status is Green.\n", plugin.PluginConfig.Name)
 	   return sensu.CheckStateOK, nil
 	} else if final["status"] == "yellow" {
-	   fmt.Printf("%s Warning: cluster status is Yellow.\n", plugin.PluginConfig.Name)
+	   fmt.Printf("%s WARNING: cluster status is Yellow.\n", plugin.PluginConfig.Name)
 	   return sensu.CheckStateWarning, nil
 	} else if final["status"] == "red" {
-	    fmt.Printf("%s Critical: cluster status is Red.\n", plugin.PluginConfig.Name)
+	    fmt.Printf("%s CRITICAL: cluster status is Red.\n", plugin.PluginConfig.Name)
 	    return sensu.CheckStateCritical, nil
 	} else {
 	    fmt.Printf("%s UNKNOWN: cluster has no status!\n", plugin.PluginConfig.Name)
