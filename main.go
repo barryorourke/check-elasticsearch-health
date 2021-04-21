@@ -3,12 +3,12 @@ package main
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"encoding/json"
-	"github.com/sensu-community/sensu-plugin-sdk/sensu"
-        "github.com/sensu/sensu-go/types"
+	"fmt"
 	"github.com/elastic/go-elasticsearch"
 	"github.com/elastic/go-elasticsearch/esapi"
+	"github.com/sensu-community/sensu-plugin-sdk/sensu"
+	"github.com/sensu/sensu-go/types"
 )
 
 type Config struct {
@@ -24,8 +24,7 @@ var (
 		},
 	}
 
-	options = []*sensu.PluginConfigOption{
-	}
+	options = []*sensu.PluginConfigOption{}
 )
 
 func main() {
@@ -41,44 +40,43 @@ func executeCheck(event *types.Event) (int, error) {
 
 	es, err := elasticsearch.NewDefaultClient()
 	if err != nil {
-	    fmt.Printf("CRITICAL: %v\n", err)
-	    return sensu.CheckStateCritical, nil
-	}	
+		fmt.Printf("CRITICAL: %v\n", err)
+		return sensu.CheckStateCritical, nil
+	}
 
 	req := esapi.ClusterHealthRequest{}
 	res, err := req.Do(context.Background(), es)
 	if err != nil {
-	    fmt.Printf("CRITICAL: %v\n", err)
-	    return sensu.CheckStateCritical, nil
+		fmt.Printf("CRITICAL: %v\n", err)
+		return sensu.CheckStateCritical, nil
 	}
 
 	buf := new(bytes.Buffer)
-	if _, err := buf.ReadFrom(res.Body)
-	err != nil {
-	    fmt.Printf("CRITICAL: %v\n", err)
-	    return sensu.CheckStateCritical, nil
+	if _, err := buf.ReadFrom(res.Body); err != nil {
+		fmt.Printf("CRITICAL: %v\n", err)
+		return sensu.CheckStateCritical, nil
 	}
-        result := buf.String()
+	result := buf.String()
 
-        var final map[string]interface{}
+	var final map[string]interface{}
 	err = json.Unmarshal([]byte(result), &final)
 	if err != nil {
-	    fmt.Printf("CRITICAL: %v\n", err)
-	    return sensu.CheckStateCritical, nil
+		fmt.Printf("CRITICAL: %v\n", err)
+		return sensu.CheckStateCritical, nil
 	}
- 
+
 	if final["status"] == "green" {
-	   fmt.Printf("%s OK: cluster status is Green.\n", plugin.PluginConfig.Name)
-	   return sensu.CheckStateOK, nil
+		fmt.Printf("%s OK: cluster status is Green.\n", plugin.PluginConfig.Name)
+		return sensu.CheckStateOK, nil
 	} else if final["status"] == "yellow" {
-	   fmt.Printf("%s WARNING: cluster status is Yellow.\n", plugin.PluginConfig.Name)
-	   return sensu.CheckStateWarning, nil
+		fmt.Printf("%s WARNING: cluster status is Yellow.\n", plugin.PluginConfig.Name)
+		return sensu.CheckStateWarning, nil
 	} else if final["status"] == "red" {
-	    fmt.Printf("%s CRITICAL: cluster status is Red.\n", plugin.PluginConfig.Name)
-	    return sensu.CheckStateCritical, nil
+		fmt.Printf("%s CRITICAL: cluster status is Red.\n", plugin.PluginConfig.Name)
+		return sensu.CheckStateCritical, nil
 	} else {
-	    fmt.Printf("%s UNKNOWN: cluster has no status!\n", plugin.PluginConfig.Name)
-	    return sensu.CheckStateUnknown, nil
+		fmt.Printf("%s UNKNOWN: cluster has no status!\n", plugin.PluginConfig.Name)
+		return sensu.CheckStateUnknown, nil
 	}
 
 }
